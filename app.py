@@ -9,9 +9,9 @@ real_ip = s.getsockname()[0]
 s.close()
 
 def main():
-    print('Digite \'quit\' a qualquer instante para sair')
     launch()
 
+    print('Digite \'quit\' a qualquer instante para sair')
     sys_quit = ""
     while(sys_quit != 'quit'):
         sys_quit = input()
