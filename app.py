@@ -8,6 +8,8 @@ s.connect(("8.8.8.8", 80))
 real_ip = s.getsockname()[0]
 s.close()
 
+other_nodes = {}
+
 def main():
     launch()
 
@@ -27,10 +29,23 @@ def launch():
         print(port)
 
         # Agora tem que preencher este computador com todos os outros
+        fill(sys.argv[1],proc_id)
+        print(other_nodes)
 
     except:
         print('Erro de execução do algoritmo! Tente Novamente')
         sys.exit()
+
+def fill(config_file,proc_id):
+    with open(config_file,'r') as f:
+        line = f.readline()
+        while(line):
+            data = line.split(' ')
+            if(data[0] != proc_id):
+                other_nodes.update( { data[0] : (data[1],data[2]) } )
+                print(other_nodes)
+            line = f.readline()
+        f.close()
 
 def test():
     print('thread done')
@@ -48,6 +63,7 @@ def reader(config_file, config_line):
                     if i == line-2:
                         reading = f.readline()
                         break
+            f.close()
 
         data = reading.split(' ')
         proc_id = data[0]
