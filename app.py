@@ -20,7 +20,7 @@ s.close()
 
 # MENSAGENS DE COMUNICACAO
 REQUEST = 'REQUEST'
-GRANT = 'GRANT'
+GRANTED = 'GRANTED'
 DENIED = 'DENIED'
 ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
@@ -83,6 +83,14 @@ def requestCriticSection():
             UNI_sock.sendto(signal,address)
             # GOOD TO GO HERE
 
+            rawdata,address = UNI_sock.recvfrom(1024)
+            data = str(rawdata).strip('b')[1:-1]
+            message_parts = data.split(':')
+            if message_parts[0] == 'GRANTED':
+                print('very noice')
+                sleep(1)
+
+
 
 
 
@@ -103,6 +111,9 @@ def listenToCitizens():
             # Aqui tem que ter a mensagem REQUEST regiao critica
             if message_parts[0] == 'REQUEST':
                 print('isadjss')
+                signal = bytes(GRANTED,'utf-8')
+                UNI_sock.sendto(signal,address)
+
             if message_parts[0] == 'DONE':
                 print('adsaad')
 
