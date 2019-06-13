@@ -24,6 +24,7 @@ GRANTED = 'GRANTED'
 DENIED = 'DENIED'
 ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
+CONFIRMED = 'CONFIRMED'
 
 total_nodes = 5
 other_nodes = {}
@@ -81,14 +82,24 @@ def requestCriticSection():
             message = REQUEST
             signal = bytes(message,'utf-8')
             UNI_sock.sendto(signal,address)
-            # GOOD TO GO HERE
-
             rawdata,address = UNI_sock.recvfrom(1024)
             data = str(rawdata).strip('b')[1:-1]
             message_parts = data.split(':')
             if message_parts[0] == 'GRANTED':
-                print('very noice')
+                print('LOCK GRANTED')
                 sleep(1)
+                '''lock()'''
+                # funcao aqui
+                '''unlock()'''
+                # agora acabei de usar essa cachorra
+                signal = bytes(DONE,'utf-8')
+                UNI_sock.sendto(signal,address)
+                rawdata,address = UNI_sock.recvfrom(1024)
+                data = str(rawdata).strip('b')[1:-1]
+                message_parts = data.split(':')
+                if message_parts[0] == 'CONFIRMED':
+                    print('Comunicação com o coordenador encerrada...')
+                    sleep(2)
 
 
 
@@ -113,6 +124,25 @@ def listenToCitizens():
                 print('isadjss')
                 signal = bytes(GRANTED,'utf-8')
                 UNI_sock.sendto(signal,address)
+
+                # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
+                '''elapsed = 0
+                start = time.time()
+                time.clock()
+                while(elapsed <= 5):
+                    print(time.time())
+                    elapsed = time.time() - start
+                    sleep(0.5)
+                    '''
+                rawdata,address = UNI_sock.recvfrom(1024)
+                data = str(rawdata).strip('b')[1:-1]
+                message_parts = data.split(':')
+                if message_parts[0] == 'DONE':
+                    print('zona de merda do caralho finalizada')
+                    signal = bytes(CONFIRMED,'utf-8')
+                    UNI_sock.sendto(signal,address)
+
+
 
             if message_parts[0] == 'DONE':
                 print('adsaad')
