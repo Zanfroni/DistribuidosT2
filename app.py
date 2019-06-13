@@ -98,7 +98,7 @@ def requestCriticSection():
                 data = str(rawdata).strip('b')[1:-1]
                 message_parts = data.split(':')
                 if message_parts[0] == 'CONFIRMED':
-                    print('Comunicação com o coordenador encerrada...')
+                    print('Comunicacao com o coordenador encerrada...')
                     sleep(2)
 
 
@@ -141,6 +141,8 @@ def listenToCitizens():
                     print('zona de merda do caralho finalizada')
                     signal = bytes(CONFIRMED,'utf-8')
                     UNI_sock.sendto(signal,address)
+                    print('Comunicacao com o nodo encerrada...')
+                    sleep(2)
 
 
 
