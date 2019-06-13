@@ -28,8 +28,7 @@ other_nodes = {}
 def main():
     clear()
     launch()
-
-    print('Digite \'quit\' a qualquer instante para sair')
+    
     sys_quit = ""
     while(sys_quit != 'quit'):
         sys_quit = input()
@@ -102,6 +101,7 @@ def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
     if proc_id == str(total_nodes):
         coordinator = True
+        print('VOCE VIROU O COORDENADOR!')
     else:
         coordinator_node = str(total_nodes)
         coordinator_ip,coordinator_port = getCoordinatorInfo()
