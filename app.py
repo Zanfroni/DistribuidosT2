@@ -135,21 +135,13 @@ def listenToCitizens():
                     elapsed = time.time() - start
                     sleep(0.5)
                     '''
-                rawdata,address = UNI_sock.recvfrom(1024)
-                data = str(rawdata).strip('b')[1:-1]
-                message_parts = data.split(':')
-                if message_parts[0] == 'DONE':
-                    print('zona de merda do caralho finalizada')
-                    signal = bytes(CONFIRMED,'utf-8')
-                    UNI_sock.sendto(signal,address)
-                    print('Comunicacao com o nodo encerrada...')
-                    sleep(2)
-
-
 
             if message_parts[0] == 'DONE':
                 print('adsaad')
-
+                signal = bytes(CONFIRMED,'utf-8')
+                UNI_sock.sendto(signal,address)
+                print('Comunicacao com o nodo encerrada...')
+                sleep(2)
 
 def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
