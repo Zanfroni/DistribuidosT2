@@ -115,6 +115,7 @@ def listenToCitizens():
 
     while True:
 
+        clear()
         rawdata,address = UNI_sock.recvfrom(1024)
         if address != ip:
             data = str(rawdata).strip('b')[1:-1]
