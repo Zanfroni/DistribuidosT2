@@ -148,6 +148,7 @@ def startCoordinator():
     if proc_id == str(total_nodes):
         coordinator = True
         print('VOCE VIROU O COORDENADOR!')
+        sleep(1)
     else:
         coordinator_node = str(total_nodes)
         coordinator_ip,coordinator_port = getCoordinatorInfo()
