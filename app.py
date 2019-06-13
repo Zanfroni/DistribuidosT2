@@ -5,13 +5,22 @@ from time import sleep
 proc_id = -1
 ip = -1
 port = -1
+
 coordinator = False
+coordinator_node = -1
+coordinator_ip = -1
+coordinator_port = -1
 
 # Magicamente pega o IP do PC atual
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
 real_ip = s.getsockname()[0]
 s.close()
+
+# MENSAGENS DE COMUNICACAO
+REQUEST = 'REQUEST'
+GRANT = 'GRANT'
+DONE = 'DONE'
 
 total_nodes = 3
 other_nodes = {}
@@ -29,12 +38,13 @@ def main():
     sys.exit()
 
 def launch():
-        global proc_id,ip,port
+        global proc_id,ip,port, other_nodes
     #try:
         proc_id, ip, port = reader(sys.argv[1],sys.argv[2])
-        print(proc_id)
-        print(ip)
-        print(port)
+        port = int(port)
+        #print(proc_id)
+        #print(ip)
+        #print(port)
 
         # Agora tem que preencher este computador com todos os outros
         fill(sys.argv[1],proc_id)
@@ -44,14 +54,30 @@ def launch():
         # Se ele é o coordenador, ele simplesmente escuta.
         # Se ele não for, ele pode tanto escutar quando enviar
         if coordinator:
-            thread.start_new_thread(listenToCitizens(),())
+            thread.start_new_thread(listenToCitizens,())
+        else:
+            thread.start_new_thread(requestCriticSection,())
         
         print(other_nodes)
         print(coordinator)
 
     #except:
         #print('Erro de execução do algoritmo! Tente Novamente')
-        sys.exit()
+        #sys.exit()
+
+def requestCriticSection():
+    while True:
+        clear()
+        print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
+        request = input()
+        if request == 'WRITE':
+            clear()
+            print('REQUISITANDO ACESSO AO COORDENADOR...')
+            sleep(2)
+
+
+
+
 
 def listenToCitizens():
 
@@ -66,13 +92,62 @@ def listenToCitizens():
             data = str(rawdata).strip('b')[1:-1]
             message_parts = data.split(':')
             # Aqui tem que ter a mensagem REQUEST regiao critica
+            if message_parts[0] == 'REQUEST':
+                print('isadjss')
+            if message_parts[0] == 'DONE':
+                print('adsaad')
 
 
 def startCoordinator():
-    global proc_id,coordinator
+    global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
     if proc_id == str(total_nodes):
         coordinator = True
+    else:
+        coordinator_node = str(total_nodes)
+        coordinator_ip,coordinator_port = getCoordinatorInfo()
+    # inacabado
+    # tem que definir as outras funcoes do coordenador
     
+def writingFunction():
+    print('escrevi alguma coisa aqui')
+
+
+def getCoordinatorInfo():
+    global proc_id,other_nodes
+    return other_nodes[coordinator_node][0],other_nodes[coordinator_node][1]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def fill(config_file,proc_id):
     global other_nodes
@@ -117,6 +192,8 @@ def reader(config_file, config_line):
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
+    print('Digite \'quit\' a qualquer instante para sair')
+    print('---------------------------------------------')
 
 if __name__ == "__main__":
     main()
