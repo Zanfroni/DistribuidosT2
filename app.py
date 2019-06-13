@@ -5,6 +5,7 @@ from time import sleep
 proc_id = -1
 ip = -1
 port = -1
+priority_queue = []
 
 coordinator = False
 coordinator_node = -1
@@ -20,9 +21,11 @@ s.close()
 # MENSAGENS DE COMUNICACAO
 REQUEST = 'REQUEST'
 GRANT = 'GRANT'
+DENIED = 'DENIED'
+ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
 
-total_nodes = 3
+total_nodes = 5
 other_nodes = {}
 
 def main():
@@ -73,6 +76,13 @@ def requestCriticSection():
             clear()
             print('REQUISITANDO ACESSO AO COORDENADOR...')
             sleep(2)
+            UNI_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            address = (coordinator_ip,coordinator_port)
+            message = REQUEST
+            signal = bytes(message,'utf-8')
+            UNI_sock.sendto(signal,address)
+            # GOOD TO GO HERE
+
 
 
 
