@@ -26,7 +26,7 @@ ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
 CONFIRMED = 'CONFIRMED'
 
-total_nodes = 1
+total_nodes = 5
 other_nodes = {}
 
 def main():
