@@ -148,6 +148,7 @@ def listenToNodes():
             except:
                 print('DEU PAU NO CONNECTION CLOSE')
                 sleep(1)
+                e.printStackTrace()
                 connection.close()
     except:
         print('DEU PAU NO SERVER CLOSE')
