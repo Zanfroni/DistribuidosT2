@@ -130,7 +130,6 @@ def listenToCitizens():
 
         clear()
         conn, client = TCP_sock.accept()
-        print(address)
         data = str(conn.recv(1024)).strip('b')[1:-1]
         print(data)
         message_parts = data.split(":")
