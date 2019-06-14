@@ -1,4 +1,4 @@
-import os, shutil, sys, socket
+import os, sys, socket
 import _thread as thread
 from time import sleep
 
@@ -26,10 +26,11 @@ ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
 CONFIRMED = 'CONFIRMED'
 
-total_nodes = 5
+total_nodes = 1
 other_nodes = {}
 
 def main():
+    startFile()
     clear()
     launch()
     
@@ -77,27 +78,31 @@ def requestCriticSection():
             clear()
             print('REQUISITANDO ACESSO AO COORDENADOR...')
             sleep(2)
-            UNI_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+            TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            destination = (coordinator_ip,coordinator_port)
+            TCP_sock.connect(destination)
+            message = proc_id + ':' + REQUEST + ':' 
+            signal = (message,'utf-8')
             address = (coordinator_ip,coordinator_port)
-            message = REQUEST
-            signal = bytes(message,'utf-8')
-            UNI_sock.sendto(signal,address)
-            rawdata,address = UNI_sock.recvfrom(1024)
+            TCP_sock.send(message,address)
+            rawdata,address = TCP_sock.recvfrom(1024)
             data = str(rawdata).strip('b')[1:-1]
             message_parts = data.split(':')
             if message_parts[0] == 'GRANTED':
                 print('LOCK GRANTED')
                 sleep(1)
-                '''lock()'''
-                # funcao aqui
-                '''unlock()'''
+                lock()
+                # writingFuntion()
+                unlock()
                 # agora acabei de usar essa cachorra
                 signal = bytes(DONE,'utf-8')
-                UNI_sock.sendto(signal,address)
-                rawdata,address = UNI_sock.recvfrom(1024)
+                TCP_sock.sendto(signal,address)
+                rawdata,address = TCP_sock.recvfrom(1024)
                 data = str(rawdata).strip('b')[1:-1]
                 message_parts = data.split(':')
                 if message_parts[0] == 'CONFIRMED':
+                    TCP_sock.close()
                     print('Comunicacao com o coordenador encerrada...')
                     sleep(2)
 
@@ -109,39 +114,45 @@ def requestCriticSection():
 
 def listenToCitizens():
 
-    # Este escuta na PROPRIA porta
-    UNI_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    UNI_sock.bind(('',port))
+    # Este escuta na PROPRIA porta (Conexao TCP constante)
+    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    origin = (ip, port)
+    TCP_sock.bind(origin)
+    TCP_sock.listen(10)
 
     while True:
 
         clear()
-        rawdata,address = UNI_sock.recvfrom(1024)
-        if address != ip:
-            data = str(rawdata).strip('b')[1:-1]
-            message_parts = data.split(':')
-            # Aqui tem que ter a mensagem REQUEST regiao critica
-            if message_parts[0] == 'REQUEST':
-                print('isadjss')
-                signal = bytes(GRANTED,'utf-8')
-                UNI_sock.sendto(signal,address)
+        conn, address = TCP_sock.accept()
+        data = str(conn.recv(1024)).strip('b')[1:-1]
+        message_parts = data.split(":")
 
-                # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
-                '''elapsed = 0
-                start = time.time()
-                time.clock()
-                while(elapsed <= 5):
-                    print(time.time())
-                    elapsed = time.time() - start
-                    sleep(0.5)
-                    '''
+        # Aqui tem que ter a mensagem REQUEST regiao critica
+        if message_parts[1] == 'REQUEST':
+            print('isadjss')
+            print('PROCESSO DE ID ' + message_parts[0] + ' PEDIU ACESSO')
+            message = GRANTED + ':'
+            signal = bytes(message,'utf-8')
+            TCP_sock.sendto(signal,address)
 
-            if message_parts[0] == 'DONE':
-                print('adsaad')
-                signal = bytes(CONFIRMED,'utf-8')
-                UNI_sock.sendto(signal,address)
-                print('Comunicacao com o nodo encerrada...')
-                sleep(2)
+            # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
+            '''elapsed = 0
+            start = time.time()
+            time.clock()
+            while(elapsed <= 5):
+                print(time.time())
+                elapsed = time.time() - start
+                sleep(0.5)
+                '''
+
+        if message_parts[1] == 'DONE':
+            print('adsaad')
+            message = CONFIRMED + ':'
+            signal = bytes(message,'utf-8')
+            TCP_sock.sendto(signal,address)
+            conn.close()
+            print('Comunicacao com o nodo encerrada...')
+            sleep(2)
 
 def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
@@ -156,7 +167,33 @@ def startCoordinator():
     # tem que definir as outras funcoes do coordenador
     
 def writingFunction():
-    print('escrevi alguma coisa aqui')
+    '''if os.path.exists('arquivo.txt'):
+            try:
+                self.lock()
+            except FileNotFoundError:
+                return
+
+            with open('lock_arquivo.txt', 'r+') as arquivo:
+                last_line = (list(arquivo)[-1])
+                last_line = int(last_line)
+
+                operation = "Processo {0} leu o valor {1}{2}".format(self.id_processo, last_line, '\n')
+                arquivo.write(operation)
+                operation = "Processo {0} adicionou {1}{2}".format(self.id_processo, self.id_processo, '\n')
+                arquivo.write(operation)
+                last_line = last_line + self.id_processo
+                operation = "Processo {0} gravou {1}{2}".format(self.id_processo, last_line, '\n')
+                arquivo.write(operation)
+                arquivo.write("{0}{1}".format(last_line, '\n'))
+
+            self.unlock()
+            self.operacoes_restantes -= 1
+        print("{0} operacoes restantes no processo {1}".format(self.operacoes_restantes, self.id_processo))'''
+    
+def lock():
+    os.rename('writing_file','LOCKED_writing_file')
+def unlock():
+    os.rename('LOCKED_writing_file','writing_file')
 
 
 def getCoordinatorInfo():
@@ -241,6 +278,12 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
     print('Digite \'quit\' a qualquer instante para sair')
     print('---------------------------------------------')
+
+def startFile():
+    if os.path.exists("writing_file.txt"):
+        os.remove("writing_file.txt")
+    f = open("writing_file.txt","w+")
+    f.close()
 
 if __name__ == "__main__":
     main()
