@@ -143,8 +143,10 @@ def listenToCitizens():
             message = GRANTED + ':'
             signal = bytes(message,'utf-8')
             conn.send(signal)
+            unlocked = False
         if message_parts[1] == 'DONE':
             print('adsaad')
+            unlocked = True
             message = CONFIRMED + ':'
             signal = bytes(message,'utf-8')
             conn.send(signal)
