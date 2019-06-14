@@ -6,6 +6,7 @@ proc_id = -1
 ip = -1
 port = -1
 priority_queue = []
+unlocked = True
 
 coordinator = False
 coordinator_node = -1
@@ -128,19 +129,32 @@ def listenToCitizens():
     while True:
 
         clear()
-        conn, address = TCP_sock.accept()
+        conn, client = TCP_sock.accept()
         print(address)
         data = str(conn.recv(1024)).strip('b')[1:-1]
         print(data)
         message_parts = data.split(":")
+        client_id = message_parts[0]
 
         # Aqui tem que ter a mensagem REQUEST regiao critica
-        if message_parts[1] == 'REQUEST':
+        if message_parts[1] == 'REQUEST' and unlocked:
             print('isadjss')
             print('PROCESSO DE ID ' + message_parts[0] + ' PEDIU ACESSO')
             message = GRANTED + ':'
             signal = bytes(message,'utf-8')
             conn.send(signal)
+        if message_parts[1] == 'DONE':
+            print('adsaad')
+            message = CONFIRMED + ':'
+            signal = bytes(message,'utf-8')
+            conn.send(signal)
+            print('Comunicacao com o nodo encerrada...')
+            sleep(2)
+
+            # nesta parte, criar thread que
+            # cria uma escuta que
+            #
+            #
 
             # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
             '''elapsed = 0
@@ -151,17 +165,6 @@ def listenToCitizens():
                 elapsed = time.time() - start
                 sleep(0.5)
                 '''
-            data = str(conn.recv(1024)).strip('b')[1:-1]
-            print(data)
-            message_parts = data.split(":")
-            if message_parts[1] == 'DONE':
-                print('adsaad')
-                message = CONFIRMED + ':'
-                signal = bytes(message,'utf-8')
-                conn.send(signal)
-                conn.close()
-                print('Comunicacao com o nodo encerrada...')
-                sleep(2)
 
 def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
