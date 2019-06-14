@@ -2,11 +2,15 @@ import os, sys, socket
 import _thread as thread
 from time import sleep
 
+DEFAULT_PORT = 7000
+
 proc_id = -1
 ip = -1
 port = -1
 priority_queue = []
+
 unlocked = True
+function_with = ""
 
 coordinator = False
 coordinator_node = -1
@@ -58,10 +62,10 @@ def launch():
         # Agora, precisa-se iniciar as escutas deste NODO com as Threads.
         # Se ele é o coordenador, ele simplesmente escuta.
         # Se ele não for, ele pode tanto escutar quando enviar
-        if coordinator:
-            thread.start_new_thread(listenToCitizens,())
-        else:
-            thread.start_new_thread(requestCriticSection,())
+        if not coordinator:
+            thread.start_new_thread(requestSection,())
+        thread.start_new_thread(listenToNodes,())
+            
         
         print(other_nodes)
         print(coordinator)
@@ -70,6 +74,180 @@ def launch():
         #print('Erro de execução do algoritmo! Tente Novamente')
         #sys.exit()
 
+def send_message(message,id,ip,port):
+    try:
+        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        data = id + ':' + message
+        destination = (ip,port)
+        signal = bytes(data,'utf-8')
+        TCP_sock.connect(destination)
+        TCP_sock.send(signal)
+        TCP_sock.close()
+    except:
+        print('ele nao responde. perai entao')
+        TCP_sock.close()
+
+
+
+def requestSection():
+
+    while not coordinator:
+        #clear()
+        print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
+        request = input()
+        if request == 'WRITE':
+            clear()
+            print('REQUISITANDO ACESSO AO COORDENADOR...')
+            sleep(2)
+            send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
+
+
+def listenToNodes():
+    global function_with
+
+    try:
+        tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        origin = (ip, port)
+        tcp_server.bind(origin)
+        tcp_server.listen(10)
+
+        while True:
+            try:
+                connection, client = tcp_server.accept()
+                # Mensagem chega na forma de bytes. Precisamos remover o b e as aspas simples
+                message = str(connection.recv(1024)).strip('b')[1:-1]
+                message_parts = message.split(":")
+                node_id = message_parts[0]
+                data = message_parts[1]
+
+                # se eu for o coordenador, tenho acesso a mais funcoes
+                if coordinator:
+                    if data == 'REQUEST':
+                        if unlocked:
+                            function_with = node_id
+                            send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+node_id)
+                            #log(node_id,)
+                        else:
+                            print('lele')
+                            # mandar mensagem ENTERED QUEUE
+                            for i in priority_queue:
+                                if i == node_id:
+                                    # mandar um WAIT
+                                    break
+                            # mandar aqui um ENTERED QUEUE
+                            # priority_queue.append(node_id)
+                    if data == 'DONE':
+                        function_with = -1
+                        #unlog(node_id,)
+                if data == 'GRANTED':
+                    lock()
+                    # WRITING FUNCTION
+                    sleep(2)
+                    unlock()
+                    send_message(DONE,proc_id,client[0],DEFAULT_PORT+node_id)
+            except:
+                print('DEU PAU NO CONNECTION CLOSE')
+                sleep(1)
+                connection.close()
+    except:
+        print('DEU PAU NO SERVER CLOSE')
+        sleep(1)
+        tcp_server.close()
+
+
+
+def startCoordinator():
+    global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
+    if proc_id == str(total_nodes):
+        coordinator = True
+        print('VOCE VIROU O COORDENADOR!')
+        sleep(1)
+    else:
+        coordinator_node = str(total_nodes)
+        coordinator_ip,coordinator_port = getCoordinatorInfo()
+    # inacabado
+    # tem que definir as outras funcoes do coordenador
+    
+def writingFunction():
+    '''if os.path.exists('arquivo.txt'):
+            try:
+                self.lock()
+            except FileNotFoundError:
+                return
+
+            with open('lock_arquivo.txt', 'r+') as arquivo:
+                last_line = (list(arquivo)[-1])
+                last_line = int(last_line)
+
+                operation = "Processo {0} leu o valor {1}{2}".format(self.id_processo, last_line, '\n')
+                arquivo.write(operation)
+                operation = "Processo {0} adicionou {1}{2}".format(self.id_processo, self.id_processo, '\n')
+                arquivo.write(operation)
+                last_line = last_line + self.id_processo
+                operation = "Processo {0} gravou {1}{2}".format(self.id_processo, last_line, '\n')
+                arquivo.write(operation)
+                arquivo.write("{0}{1}".format(last_line, '\n'))
+
+            self.unlock()
+            self.operacoes_restantes -= 1
+        print("{0} operacoes restantes no processo {1}".format(self.operacoes_restantes, self.id_processo))'''
+    
+def lock():
+    os.rename('writing_file.txt','LOCKED_writing_file.txt')
+def unlock():
+    os.rename('LOCKED_writing_file.txt','writing_file.txt')
+
+
+def getCoordinatorInfo():
+    global proc_id,other_nodes
+    return other_nodes[coordinator_node][0],other_nodes[coordinator_node][1]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 def requestCriticSection():
     while True:
         clear()
@@ -158,7 +336,7 @@ def listenToCitizens():
             #
 
             # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
-            '''elapsed = 0
+            elapsed = 0
             start = time.time()
             time.clock()
             while(elapsed <= 5):
@@ -166,85 +344,6 @@ def listenToCitizens():
                 elapsed = time.time() - start
                 sleep(0.5)
                 '''
-
-def startCoordinator():
-    global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
-    if proc_id == str(total_nodes):
-        coordinator = True
-        print('VOCE VIROU O COORDENADOR!')
-        sleep(1)
-    else:
-        coordinator_node = str(total_nodes)
-        coordinator_ip,coordinator_port = getCoordinatorInfo()
-    # inacabado
-    # tem que definir as outras funcoes do coordenador
-    
-def writingFunction():
-    '''if os.path.exists('arquivo.txt'):
-            try:
-                self.lock()
-            except FileNotFoundError:
-                return
-
-            with open('lock_arquivo.txt', 'r+') as arquivo:
-                last_line = (list(arquivo)[-1])
-                last_line = int(last_line)
-
-                operation = "Processo {0} leu o valor {1}{2}".format(self.id_processo, last_line, '\n')
-                arquivo.write(operation)
-                operation = "Processo {0} adicionou {1}{2}".format(self.id_processo, self.id_processo, '\n')
-                arquivo.write(operation)
-                last_line = last_line + self.id_processo
-                operation = "Processo {0} gravou {1}{2}".format(self.id_processo, last_line, '\n')
-                arquivo.write(operation)
-                arquivo.write("{0}{1}".format(last_line, '\n'))
-
-            self.unlock()
-            self.operacoes_restantes -= 1
-        print("{0} operacoes restantes no processo {1}".format(self.operacoes_restantes, self.id_processo))'''
-    
-def lock():
-    os.rename('writing_file.txt','LOCKED_writing_file.txt')
-def unlock():
-    os.rename('LOCKED_writing_file.txt','writing_file.txt')
-
-
-def getCoordinatorInfo():
-    global proc_id,other_nodes
-    return other_nodes[coordinator_node][0],other_nodes[coordinator_node][1]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def fill(config_file,proc_id):
     global other_nodes
