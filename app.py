@@ -82,10 +82,11 @@ def requestCriticSection():
             TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             destination = (coordinator_ip,coordinator_port)
             TCP_sock.connect(destination)
-            message = proc_id + ':' + REQUEST + ':' 
-            signal = (message,'utf-8')
+            message = proc_id + ':' + REQUEST + ':'
+            signal = bytes(message,'utf-8')
             address = (coordinator_ip,coordinator_port)
-            TCP_sock.send(message,address)
+            print(signal)
+            TCP_sock.send(signal)
             rawdata,address = TCP_sock.recvfrom(1024)
             data = str(rawdata).strip('b')[1:-1]
             message_parts = data.split(':')
@@ -96,9 +97,13 @@ def requestCriticSection():
                 # writingFuntion()
                 unlock()
                 # agora acabei de usar essa cachorra
-                signal = bytes(DONE,'utf-8')
-                TCP_sock.sendto(signal,address)
+                print('print cachorra')
+                message = proc_id + ':' + DONE + ':'
+                signal = bytes(message,'utf-8')
+                TCP_sock.send(signal)
+                print('aaaa')
                 rawdata,address = TCP_sock.recvfrom(1024)
+                print('lerina')
                 data = str(rawdata).strip('b')[1:-1]
                 message_parts = data.split(':')
                 if message_parts[0] == 'CONFIRMED':
@@ -124,7 +129,9 @@ def listenToCitizens():
 
         clear()
         conn, address = TCP_sock.accept()
+        print(address)
         data = str(conn.recv(1024)).strip('b')[1:-1]
+        print(data)
         message_parts = data.split(":")
 
         # Aqui tem que ter a mensagem REQUEST regiao critica
@@ -133,7 +140,7 @@ def listenToCitizens():
             print('PROCESSO DE ID ' + message_parts[0] + ' PEDIU ACESSO')
             message = GRANTED + ':'
             signal = bytes(message,'utf-8')
-            TCP_sock.sendto(signal,address)
+            conn.send(signal)
 
             # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
             '''elapsed = 0
@@ -144,15 +151,17 @@ def listenToCitizens():
                 elapsed = time.time() - start
                 sleep(0.5)
                 '''
-
-        if message_parts[1] == 'DONE':
-            print('adsaad')
-            message = CONFIRMED + ':'
-            signal = bytes(message,'utf-8')
-            TCP_sock.sendto(signal,address)
-            conn.close()
-            print('Comunicacao com o nodo encerrada...')
-            sleep(2)
+            data = str(conn.recv(1024)).strip('b')[1:-1]
+            print(data)
+            message_parts = data.split(":")
+            if message_parts[1] == 'DONE':
+                print('adsaad')
+                message = CONFIRMED + ':'
+                signal = bytes(message,'utf-8')
+                conn.send(signal)
+                conn.close()
+                print('Comunicacao com o nodo encerrada...')
+                sleep(2)
 
 def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
@@ -191,9 +200,9 @@ def writingFunction():
         print("{0} operacoes restantes no processo {1}".format(self.operacoes_restantes, self.id_processo))'''
     
 def lock():
-    os.rename('writing_file','LOCKED_writing_file')
+    os.rename('writing_file.txt','LOCKED_writing_file.txt')
 def unlock():
-    os.rename('LOCKED_writing_file','writing_file')
+    os.rename('LOCKED_writing_file.txt','writing_file.txt')
 
 
 def getCoordinatorInfo():
