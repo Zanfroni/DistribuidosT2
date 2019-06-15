@@ -39,6 +39,8 @@ def main():
     clear()
     launch()
     
+    while True:
+        sleep(0.1)
     '''sys_quit = ""
     while(sys_quit != 'quit'):
         sys_quit = input()
