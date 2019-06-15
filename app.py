@@ -30,6 +30,7 @@ DENIED = 'DENIED'
 ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
 WAIT = 'WAIT'
+LEADER_DEAD = 'LEADER_DEAD'
 
 total_nodes = 5
 other_nodes = {}
@@ -86,7 +87,11 @@ def send_message(message,id,ip,port):
         TCP_sock.send(signal)
         TCP_sock.close()
     except:
-        print('ele nao responde. perai entao')
+        print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
+        # Manda mensagem pra todos apagarem os seus coordenadores (os dados), cria um sendtoall() --> dead e sou lider
+        # Inicia a eleicao, pegando os node_ids, maiores que os seus. Manda um leader message
+        # 
+
         TCP_sock.close()
 
 
