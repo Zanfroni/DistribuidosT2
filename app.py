@@ -29,7 +29,7 @@ GRANTED = 'GRANTED'
 DENIED = 'DENIED'
 ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
-CONFIRMED = 'CONFIRMED'
+WAIT = 'WAIT'
 
 total_nodes = 5
 other_nodes = {}
@@ -103,7 +103,7 @@ def requestSection():
 
 
 def listenToNodes():
-    global function_with
+    global function_with, unlocked
 
     try:
         tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -113,6 +113,12 @@ def listenToNodes():
 
         while True:
             try:
+
+                # ver aqui se tem alguem na fila
+                if coordinator:
+                    if priority_queue and unlocked:
+                        next_node = priority_queue.remove(0)
+
                 connection, client = tcp_server.accept()
                 # Mensagem chega na forma de bytes. Precisamos remover o b e as aspas simples
                 message = str(connection.recv(1024)).strip('b')[1:-1]
@@ -125,19 +131,23 @@ def listenToNodes():
                     if data == 'REQUEST':
                         if unlocked:
                             function_with = node_id
+                            unlocked = False
                             send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
                             #log(node_id,)
                         else:
-                            print('lele')
-                            # mandar mensagem ENTERED QUEUE
+                            in_queue = False
+                            #Verifica se o cara ta na fila
                             for i in priority_queue:
                                 if i == node_id:
-                                    # mandar um WAIT
-                                    break
-                            # mandar aqui um ENTERED QUEUE
-                            # priority_queue.append(node_id)
+                                    send_message(WAIT,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                                    in_queue = True
+                            if not in_queue:
+                                send_message(DENIED,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                                priority_queue.append(node_id)
                     if data == 'DONE':
                         function_with = -1
+                        unlocked = True
+                        print('FOOOOI')
                         #unlog(node_id,)
                 if data == 'GRANTED':
                     lock()
@@ -145,6 +155,12 @@ def listenToNodes():
                     sleep(2)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                if data == 'DENIED':
+                    print('Section is currently being used by ' + node_id)
+                    print('Youve been placed in the priority queue. Wait!')
+                if data == 'WAIT':
+                    print('Espera ai o... cachorra apressada. Tu ja ta na fila!!!')
+
             except Exception as e:
                 print('DEU PAU NO CONNECTION CLOSE')
                 sleep(1)
