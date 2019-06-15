@@ -159,7 +159,7 @@ def listenToNodes():
                 if data == 'GRANTED':
                     lock()
                     # WRITING FUNCTION
-                    sleep(2)
+                    sleep(5)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
