@@ -116,7 +116,7 @@ def listenToNodes():
 
                 # ver aqui se tem alguem na fila
                 if coordinator:
-                    if priority_queue and unlocked:
+                    if len(priority_queue) > 0 and unlocked:
                         next_node = priority_queue.remove(0)
                         function_with = next_node[0]
                         unlocked = False
