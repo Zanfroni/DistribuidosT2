@@ -100,7 +100,7 @@ def requestSection():
         if request == 'WRITE':
             #clear()
             print('REQUISITANDO ACESSO AO COORDENADOR...')
-            sleep(2)
+            #sleep(2)
             send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
 
 
