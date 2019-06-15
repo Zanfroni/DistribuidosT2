@@ -98,7 +98,7 @@ def requestSection():
         print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
         request = input()
         if request == 'WRITE':
-            clear()
+            #clear()
             print('REQUISITANDO ACESSO AO COORDENADOR...')
             sleep(2)
             send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
