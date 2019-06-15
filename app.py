@@ -39,12 +39,12 @@ def main():
     clear()
     launch()
     
-    sys_quit = ""
+    '''sys_quit = ""
     while(sys_quit != 'quit'):
         sys_quit = input()
 
     print('Programa encerrado!')
-    sys.exit()
+    sys.exit()'''
 
 def launch():
         global proc_id,ip,port, other_nodes
@@ -117,7 +117,7 @@ def listenToNodes():
                 # ver aqui se tem alguem na fila
                 if coordinator:
                     if len(priority_queue) > 0 and unlocked:
-                        next_node = priority_queue.remove(0)
+                        next_node = priority_queue.pop(0)
                         function_with = next_node[0]
                         unlocked = False
                         send_message(GRANTED,proc_id,next_node[1],DEFAULT_PORT+int(next_node[0]))
