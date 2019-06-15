@@ -125,7 +125,7 @@ def listenToNodes():
                     if data == 'REQUEST':
                         if unlocked:
                             function_with = node_id
-                            send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+node_id)
+                            send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
                             #log(node_id,)
                         else:
                             print('lele')
@@ -144,11 +144,11 @@ def listenToNodes():
                     # WRITING FUNCTION
                     sleep(2)
                     unlock()
-                    send_message(DONE,proc_id,client[0],DEFAULT_PORT+node_id)
-            except:
+                    send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
+            except Exception as e:
                 print('DEU PAU NO CONNECTION CLOSE')
                 sleep(1)
-                e.printStackTrace()
+                print(e)
                 connection.close()
     except:
         print('DEU PAU NO SERVER CLOSE')
