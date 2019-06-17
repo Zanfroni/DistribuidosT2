@@ -68,8 +68,6 @@ def launch():
         if not coordinator:
             thread.start_new_thread(requestSection,())
         thread.start_new_thread(listenToNodes,())
-            
-        
         print(other_nodes)
         print(coordinator)
 
