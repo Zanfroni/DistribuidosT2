@@ -324,7 +324,7 @@ def startCoordinator():
     
 def writingFunction(node_id):
     global count
-    f = open('writing_file.txt','w')
+    f = open('writing_file.txt','a')
     f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + str(count) + ' vez')
     count += 1
     f.close()
@@ -335,7 +335,7 @@ def unlock():
     os.rename('LOCKED_writing_file.txt','writing_file.txt')
 
 def log(node_id,info):
-    f = open('writing_file.txt','w')
+    f = open('writing_file.txt','a')
     if info == 'GRANTED':
         print('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
         f.write('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
