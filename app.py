@@ -166,7 +166,7 @@ def warnNodes(message):
             print(other_nodes)
             print('warna mais')
             TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
-            data = id + ':' + message
+            data = proc_id + ':' + message
             destination = (other_nodes[node][0],other_nodes[node][1])
             signal = bytes(data,'utf-8')
             TCP_sock.connect(destination)
