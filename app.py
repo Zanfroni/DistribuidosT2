@@ -177,12 +177,13 @@ def blacklistCount(node_id):
     global unlocked
     start_time = time.time()
     current_time = time.time()
-    while start_time - current_time < 5:
+    while current_time - start_time < 5:
         sleep(0.1)
         current_time = time.time()
     if node_id in using:
+        print('DEVERIA TER FEIOT ANTES')
         unlocked = True
-        using.pop(node_id)
+        using.remove(node_id)
         blacklisted_nodes.append(node_id)
         log(node_id,'BLACKLISTED')
 
@@ -217,8 +218,11 @@ def listenToNodes():
                     if len(priority_queue) > 0 and unlocked:
                         next_node = priority_queue.pop(0)
                         function_with = next_node[0]
+                        print(next_node[0])
                         unlocked = False
                         send_message(GRANTED,proc_id,next_node[1],DEFAULT_PORT+int(next_node[0]))
+                        using.append(next_node[0])
+                        thread.start_new_thread(blacklistCount,(next_node[0],))
                         log(next_node[0],'GRANTED')
 
 
@@ -239,6 +243,7 @@ def listenToNodes():
                             function_with = node_id
                             unlocked = False
                             send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                            thread.start_new_thread(blacklistCount,(node_id,))
                             using.append(node_id)
                             log(node_id,'GRANTED')
                         else:
@@ -253,7 +258,7 @@ def listenToNodes():
                                 send_message(DENIED,proc_id,client[0],DEFAULT_PORT+int(node_id))
                                 priority_queue.append((node_id,client[0]))
                                 log(node_id,'WAIT')
-                    if data == 'DONE':
+                    if data == 'DONE' and node_id not in blacklisted_nodes:
                         function_with = -1
                         using.remove(node_id)
                         unlocked = True
@@ -264,7 +269,9 @@ def listenToNodes():
                     # WRITING FUNCTION
                     sleep(3)
                     unlock()
-                    send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                    if proc_id in blacklisted_nodes:
+                        print('Voce foi banido do servico pelo coordenador!')
+                    else: send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
                     print('Section is currently being used by ' + node_id)
                     print('Youve been placed in the priority queue. Wait!')
@@ -345,6 +352,9 @@ def log(node_id,info):
     if info == 'TRIED':
         print('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
         f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
+    if info == 'BANNED':
+        print('Este computador foi banido de usar o servico')
+        f.write('Este computador foi banido de usar o servico')
     f.close()
 
 def getCoordinatorInfo():
