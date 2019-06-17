@@ -301,7 +301,7 @@ def listenToNodes():
                     in_election = False
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
-            except Exception as e:
+            except:
                 print('DEU PAU NO CONNECTION CLOSE')
                 connection.close()
     except:
