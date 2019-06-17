@@ -137,16 +137,17 @@ def setConsensus_Recv(con_node):
 def announceLeadership():
     global coordinator, in_election
     TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    data = id + ':' + IM_LEADER
+    data = proc_id + ':' + IM_LEADER
 
     for node in other_nodes:
-        destination = (node[0],node[1])
+        destination = (other_nodes[node][0],other_nodes[node][1])
         signal = bytes(data,'utf-8')
         TCP_sock.connect(destination)
         TCP_sock.send(signal)
     TCP_sock.close()
     coordinator = True
     in_election = False
+    print('foioooo???')
 
 def setLeader(leader_id):
     global coordinator_ip,coordinator_node,coordinator_port, in_election
@@ -272,7 +273,7 @@ def listenToNodes():
                 if data == 'GRANTED':
                     lock()
                     writingFunction(proc_id)
-                    sleep(8)
+                    sleep(4)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
