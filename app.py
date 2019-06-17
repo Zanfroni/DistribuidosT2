@@ -107,7 +107,7 @@ def consensusNodes():
     for node in consense_to_send:
         TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         data = proc_id + ':' + CONSENSE
-        destination = (node[0],node[1])
+        destination = (other_nodes[node][0],other_nodes[node][1])
         signal = bytes(data,'utf-8')
         TCP_sock.connect(destination)
         TCP_sock.send(signal)
