@@ -93,7 +93,6 @@ def send_message(message,id,ip,port):
         TCP_sock.send(signal)
         TCP_sock.close()
     except:
-        TCP_sock.close()
         print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
         log(id,'STARTED')
         warnNodes(LEADER_DEAD)
@@ -105,16 +104,15 @@ def send_message(message,id,ip,port):
 # Aqui eu tenho que mandar mensagem
 def consensusNodes():
     global consense_to_send
-    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    data = proc_id + ':' + CONSENSE
-
     for node in consense_to_send:
+        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        data = proc_id + ':' + CONSENSE
         destination = (node[0],node[1])
         signal = bytes(data,'utf-8')
         TCP_sock.connect(destination)
         TCP_sock.send(signal)
+        TCP_sock.close()
     consense_to_send = []
-    TCP_sock.close()
         
     
 def setConsensus_Send():
@@ -137,15 +135,15 @@ def setConsensus_Recv(con_node):
 
 def announceLeadership():
     global coordinator, in_election
-    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    data = proc_id + ':' + IM_LEADER
 
     for node in other_nodes:
+        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        data = proc_id + ':' + IM_LEADER
         destination = (other_nodes[node][0],other_nodes[node][1])
         signal = bytes(data,'utf-8')
         TCP_sock.connect(destination)
         TCP_sock.send(signal)
-    TCP_sock.close()
+        TCP_sock.close()
     coordinator = True
     in_election = False
     print('foioooo???')
