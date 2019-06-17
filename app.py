@@ -208,7 +208,7 @@ def listenToNodes():
                         function_with = next_node[0]
                         unlocked = False
                         send_message(GRANTED,proc_id,next_node[1],DEFAULT_PORT+int(next_node[0]))
-                        #log(node_id,)
+                        log(node_id,'GRANTED')
 
 
                 connection, client = tcp_server.accept()
@@ -225,7 +225,7 @@ def listenToNodes():
                             function_with = node_id
                             unlocked = False
                             send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
-                            #log(node_id,)
+                            log(node_id,'GRANTED')
                         else:
                             in_queue = False
                             #Verifica se o cara ta na fila
@@ -240,7 +240,7 @@ def listenToNodes():
                         function_with = -1
                         unlocked = True
                         print('FOOOOI')
-                        #unlog(node_id,)
+                        log(node_id,'USED')
                 if data == 'GRANTED':
                     lock()
                     # WRITING FUNCTION
@@ -296,181 +296,24 @@ def startCoordinator():
     # tem que definir as outras funcoes do coordenador
     
 def writingFunction():
-    '''if os.path.exists('arquivo.txt'):
-            try:
-                self.lock()
-            except FileNotFoundError:
-                return
-
-            with open('lock_arquivo.txt', 'r+') as arquivo:
-                last_line = (list(arquivo)[-1])
-                last_line = int(last_line)
-
-                operation = "Processo {0} leu o valor {1}{2}".format(self.id_processo, last_line, '\n')
-                arquivo.write(operation)
-                operation = "Processo {0} adicionou {1}{2}".format(self.id_processo, self.id_processo, '\n')
-                arquivo.write(operation)
-                last_line = last_line + self.id_processo
-                operation = "Processo {0} gravou {1}{2}".format(self.id_processo, last_line, '\n')
-                arquivo.write(operation)
-                arquivo.write("{0}{1}".format(last_line, '\n'))
-
-            self.unlock()
-            self.operacoes_restantes -= 1
-        print("{0} operacoes restantes no processo {1}".format(self.operacoes_restantes, self.id_processo))'''
+    print('ESCREVI NESSA BOSTA')
+    print('SO IMPLEMENTA AQUI UMA ESCRITA BOSTA')
+    print('PRA FICAR DE ACORDO COM O ENUNCIADO')
     
 def lock():
     os.rename('writing_file.txt','LOCKED_writing_file.txt')
 def unlock():
     os.rename('LOCKED_writing_file.txt','writing_file.txt')
 
+def log(node_id,info):
+    if info == 'GRANTED':
+        print('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
+    if info == 'USED':
+        print('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
 
 def getCoordinatorInfo():
     global proc_id,other_nodes
     return other_nodes[coordinator_node][0],other_nodes[coordinator_node][1]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-def requestCriticSection():
-    while True:
-        clear()
-        print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
-        request = input()
-        if request == 'WRITE':
-            clear()
-            print('REQUISITANDO ACESSO AO COORDENADOR...')
-            sleep(2)
-
-            TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            destination = (coordinator_ip,coordinator_port)
-            TCP_sock.connect(destination)
-            message = proc_id + ':' + REQUEST + ':'
-            signal = bytes(message,'utf-8')
-            address = (coordinator_ip,coordinator_port)
-            print(signal)
-            TCP_sock.send(signal)
-            rawdata,address = TCP_sock.recvfrom(1024)
-            data = str(rawdata).strip('b')[1:-1]
-            message_parts = data.split(':')
-            if message_parts[0] == 'GRANTED':
-                print('LOCK GRANTED')
-                sleep(1)
-                lock()
-                # writingFuntion()
-                unlock()
-                # agora acabei de usar essa cachorra
-                print('print cachorra')
-                message = proc_id + ':' + DONE + ':'
-                signal = bytes(message,'utf-8')
-                TCP_sock.send(signal)
-                print('aaaa')
-                rawdata,address = TCP_sock.recvfrom(1024)
-                print('lerina')
-                data = str(rawdata).strip('b')[1:-1]
-                message_parts = data.split(':')
-                if message_parts[0] == 'CONFIRMED':
-                    TCP_sock.close()
-                    print('Comunicacao com o coordenador encerrada...')
-                    sleep(2)
-
-
-
-
-
-
-
-def listenToCitizens():
-
-    # Este escuta na PROPRIA porta (Conexao TCP constante)
-    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    origin = (ip, port)
-    TCP_sock.bind(origin)
-    TCP_sock.listen(10)
-
-    while True:
-
-        clear()
-        conn, client = TCP_sock.accept()
-        data = str(conn.recv(1024)).strip('b')[1:-1]
-        print(data)
-        message_parts = data.split(":")
-        client_id = message_parts[0]
-
-        # Aqui tem que ter a mensagem REQUEST regiao critica
-        if message_parts[1] == 'REQUEST' and unlocked:
-            print('isadjss')
-            print('PROCESSO DE ID ' + message_parts[0] + ' PEDIU ACESSO')
-            message = GRANTED + ':'
-            signal = bytes(message,'utf-8')
-            conn.send(signal)
-            unlocked = False
-        if message_parts[1] == 'DONE':
-            print('adsaad')
-            unlocked = True
-            message = CONFIRMED + ':'
-            signal = bytes(message,'utf-8')
-            conn.send(signal)
-            print('Comunicacao com o nodo encerrada...')
-            sleep(2)
-
-            # nesta parte, criar thread que
-            # cria uma escuta que
-            #
-            #
-
-            # APOS DAR GRANT, TEM QUE FAZER O CAVALHEIRISMO (farei uma thread que responde a isso)
-            elapsed = 0
-            start = time.time()
-            time.clock()
-            while(elapsed <= 5):
-                print(time.time())
-                elapsed = time.time() - start
-                sleep(0.5)
-                '''
 
 def fill(config_file,proc_id):
     global other_nodes
