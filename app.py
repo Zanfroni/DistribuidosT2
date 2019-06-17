@@ -88,10 +88,6 @@ def send_message(message,id,ip,port):
         TCP_sock.close()
     except:
         print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
-        # Manda mensagem pra todos apagarem os seus coordenadores (os dados), cria um sendtoall() --> dead e sou lider
-        # Inicia a eleicao, pegando os node_ids, maiores que os seus. Manda um leader message
-        # 
-
         warnNodes(LEADER_DEAD)
         setConsensus_Send()
         consensusNodes()
@@ -150,11 +146,6 @@ def setLeader(leader_id):
             coordinator_port = node[1]
             in_election = False
 
-
-
-
-# TO AVISANDO TODOS OS NODINHOS QUE O COORDENADOR MORREU
-# ZERA OS DADOS DELE POIS UMA ELEICAO VAI COMECAR
 def warnNodes(message):
     global coordinator_node,coordinator_ip,coordinator_port, in_election
     try:
@@ -208,7 +199,7 @@ def listenToNodes():
                         function_with = next_node[0]
                         unlocked = False
                         send_message(GRANTED,proc_id,next_node[1],DEFAULT_PORT+int(next_node[0]))
-                        log(node_id,'GRANTED')
+                        log(next_node,'GRANTED')
 
 
                 connection, client = tcp_server.accept()
