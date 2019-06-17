@@ -292,8 +292,6 @@ def startCoordinator():
     else:
         coordinator_node = str(total_nodes)
         coordinator_ip,coordinator_port = getCoordinatorInfo()
-    # inacabado
-    # tem que definir as outras funcoes do coordenador
     
 def writingFunction():
     print('ESCREVI NESSA BOSTA')
