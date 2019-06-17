@@ -3,8 +3,10 @@ import _thread as thread
 from time import sleep
 import time
 
+# Nao alterar
 DEFAULT_PORT = 7000
 
+#Todas estas sao variaveis auxiliares necessarias
 proc_id = -1
 ip = -1
 port = -1
@@ -38,9 +40,11 @@ CONSENSE = 'CONSENSE'
 IM_LEADER = 'IM_LEADER'
 BLACKLISTED = 'BLACKLISTED'
 
+# total_nodes DEVE ter o tamanho da quantidade de nodos no arquivo
 total_nodes = 4
 other_nodes = {}
 
+# Principal. Da inicio
 def main():
     startFile()
     clear()
@@ -49,14 +53,15 @@ def main():
     while True:
         sleep(0.1)
 
+# Aqui da inicio.
+# Os nodos iram ter 2 funcoes. Uma que escuta outras mensagens, que sera o Hub principal,
+# enquanto quem NAO for o coordenador tera uma funcionalidade que pode enviar mensagens
+# para usar a secao critica
 def launch():
     global proc_id,ip,port, other_nodes
     try:
         proc_id, ip, port = reader(sys.argv[1],sys.argv[2])
         port = int(port)
-        #print(proc_id)
-        #print(ip)
-        #print(port)
 
         # Agora tem que preencher este computador com todos os outros
         fill(sys.argv[1],proc_id)
@@ -68,33 +73,24 @@ def launch():
         if not coordinator:
             thread.start_new_thread(requestSection,())
         thread.start_new_thread(listenToNodes,())
-        print(other_nodes)
-        print(coordinator)
 
     except:
         print('Erro de execução do algoritmo! Tente Novamente')
         sys.exit()
 
-def send_message(message,id,ip,port):
-    try:
-        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        data = id + ':' + message
-        destination = (ip,port)
-        signal = bytes(data,'utf-8')
-        print('wtf')
-        TCP_sock.connect(destination)
-        print('comassim')
-        TCP_sock.send(signal)
-        TCP_sock.close()
-    except:
-        print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
-        log(id,'STARTED')
-        warnNodes(LEADER_DEAD)
-        setConsensus_Send()
-        consensusNodes()
-        TCP_sock.close()
+''' -------------------------------------------------------------------- '''
+# AQUI ESTAO PRESENTES AS FUNCOES ENVOLVIDAS NA ELEICAO DO VALENTAO
+#
+# consensusNodes: Manda mensagem de consenso para os nodos de numero maior, avisando
+#   sobre a eleicao
+# setConsensus_Send: define quais sao os nodos que ele deve mandar as mensagem de consenso
+#   (so os maiores)
+# setConsensus_Recv: Define quantas mensagens ele deve receber ate poder atuar (mandar as suas)
+#   ex: se 4 inicia a eleicao, 5 espera receber de 4, para entao enviar para 6 e 7. a logica se mantem
+# announceLeadership: anuncia para todos que sera o lider
+# setLeader: os nodos mudam a informacao para o novo coordenador
+# warnNodes: avisa aos nodos que o coordenador MORREU
 
-# Aqui eu tenho que mandar mensagem
 def consensusNodes():
     global consense_to_send
     for node in consense_to_send:
@@ -109,9 +105,7 @@ def consensusNodes():
         
 def setConsensus_Send():
     for node in other_nodes:
-        print(node)
         if int(node) > int(proc_id):
-            print('shits good')
             consense_to_send.append((other_nodes[node][0],other_nodes[node][1]))
     # Se ele nao tem ninguem pra enviar, ele sera o leader
     if len(consense_to_send) == 0:
@@ -127,7 +121,6 @@ def setConsensus_Recv(con_node):
 
 def announceLeadership():
     global coordinator, in_election
-
     for node in other_nodes:
         TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         data = proc_id + ':' + IM_LEADER
@@ -138,7 +131,6 @@ def announceLeadership():
         TCP_sock.close()
     coordinator = True
     in_election = False
-    print('foioooo???')
 
 def setLeader(leader_id):
     global coordinator_ip,coordinator_node,coordinator_port, in_election
@@ -154,21 +146,53 @@ def warnNodes(message):
     try:
         other_nodes.pop(coordinator_node)
         coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
-        print('warna corno')
         for node in other_nodes:
-            print(other_nodes)
-            print('warna mais')
             TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
             data = proc_id + ':' + message
             destination = (other_nodes[node][0],other_nodes[node][1])
             signal = bytes(data,'utf-8')
             TCP_sock.connect(destination)
             TCP_sock.send(signal)
-            print('estou warnando os outros')
             TCP_sock.close()
         in_election = True
     except:
         print('Ocorreu algum erro durante a eleicao!!')
+
+''' -------------------------------------------------------------------- '''
+
+# ESTAS FUNCOES DEFINEM AS FUNCOES NORMAIS DO NODO
+#
+# send_message: envia uma mensagem a um nodo. Se cair no except, significa que o coordenador
+#   esta morto e uma eleicao precisa ser iniciada
+# blacklistCount: contagem para o "cavalheirismo". Se esgotar, ele bane o nodo
+# requestSection: Thread usada SO PARA OS NAO COORDENADORES. Eles digitam WRITE para simplesmente requisitar
+#   a secao
+# listenToNodes: HUB PRINCIPAL. Aqui ele escuta todas as mensagens e trata de acordo o recebido
+#       * REQUEST: coordenador only. Coordenador recebe e da ao nodo a secao
+#       * GRANTED: nodo foi permitido a usar a secao
+#       * DONE: coordenador only. Sera notificado que o nodo terminou de usar a secao
+#       * DENIED: Recusado e posto na fila de prioridades
+#       * BLACKLISTED: Nodo foi banido
+#       * WAIT: Nodo esta impaciente, precisa esperar
+#       * CONSENSE: Mensagem de consenso da eleicao
+#       * IM_LEADER: Coordenador anunciado
+
+def send_message(message,id,ip,port):
+    try:
+        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        data = id + ':' + message
+        destination = (ip,port)
+        signal = bytes(data,'utf-8')
+        TCP_sock.connect(destination)
+        TCP_sock.send(signal)
+        TCP_sock.close()
+    except:
+        print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
+        log(id,'STARTED')
+        warnNodes(LEADER_DEAD)
+        setConsensus_Send()
+        consensusNodes()
+        TCP_sock.close()
 
 def blacklistCount(node_id):
     global unlocked
@@ -178,7 +202,6 @@ def blacklistCount(node_id):
         sleep(0.1)
         current_time = time.time()
     if node_id in using:
-        print('DEVERIA TER FEIOT ANTES')
         unlocked = True
         using.remove(node_id)
         blacklisted_nodes.append(node_id)
@@ -207,8 +230,7 @@ def listenToNodes():
 
         while True:
             try:
-
-                # ver aqui se tem alguem na fila
+                #Verifica se tem algum nodo na fila de prioridades
                 if coordinator:
                     if len(priority_queue) > 0 and unlocked:
                         next_node = priority_queue.pop(0)
@@ -220,9 +242,7 @@ def listenToNodes():
                         thread.start_new_thread(blacklistCount,(next_node[0],))
                         log(next_node[0],'GRANTED')
 
-
                 connection, client = tcp_server.accept()
-                # Mensagem chega na forma de bytes. Precisamos remover o b e as aspas simples
                 message = str(connection.recv(1024)).strip('b')[1:-1]
                 message_parts = message.split(":")
                 node_id = message_parts[0]
@@ -258,21 +278,21 @@ def listenToNodes():
                             function_with = -1
                             using.remove(node_id)
                             unlocked = True
-                            print('FOOOOI')
                             log(node_id,'USED')
                         else:
                             log(node_id,'BANNED')
                 if data == 'GRANTED':
                     lock()
                     writingFunction(proc_id)
+                    #Este sleep sera apenas para simular o tempo usado
                     sleep(4)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
-                    print('Section is currently being used by ' + node_id)
-                    print('Youve been placed in the priority queue. Wait!')
+                    print('Secao esta sendo utilizada por ' + node_id)
+                    print('Voce foi posto na fila de espera')
                 if data == 'WAIT':
-                    print('Wait the fuck, cachorra apressada. Tu ja ta na fila!!!')
+                    print('Espera um pouco. Python cachorra!')
                 if data == 'LEADER_DEAD':
                     print('Lider morto. Eleicao sera iniciada e conduzida por ' + node_id)
                     other_nodes.pop(coordinator_node)
@@ -294,35 +314,40 @@ def listenToNodes():
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
             except:
-                print('DEU PAU NO CONNECTION CLOSE')
+                print('Ocorreu algum problema na conexao')
                 connection.close()
     except:
-        print('DEU PAU NO SERVER CLOSE')
+        print('Ocorreu algum problema no servico')
         tcp_server.close()
 
+''' -------------------------------------------------------------------- '''
 
+# Aqui define QUEM sera o coordenador
 def startCoordinator():
     global proc_id,coordinator,coordinator_ip,coordinator_node,coordinator_port
     if proc_id == str(total_nodes):
         coordinator = True
-        print('VOCE VIROU O COORDENADOR!')
+        print('SOU O COORDENADOR')
         sleep(1)
     else:
         coordinator_node = str(total_nodes)
         coordinator_ip,coordinator_port = getCoordinatorInfo()
     
+''' SECAO CRITICA '''
 def writingFunction(node_id):
     global count
     f = open('writing_file.txt','a')
     f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + str(count) + ' vez\n')
     count += 1
     f.close()
-    
+
+# FUNCOES QUE SIMULAM UM lock() E unlock()    
 def lock():
     os.rename('writing_file.txt','LOCKED_writing_file.txt')
 def unlock():
     os.rename('LOCKED_writing_file.txt','writing_file.txt')
 
+# Simulacao do Log para o coordenador
 def log(node_id,info):
     f = open('writing_file.txt','a')
     if info == 'GRANTED':
@@ -354,10 +379,12 @@ def log(node_id,info):
         f.write('Este computador ('+ node_id + ') foi banido de usar o servico\n')
     f.close()
 
+# Auxiliar. Pega informacoes do coordenador para os nodos saberem quem ele sera
 def getCoordinatorInfo():
     global proc_id,other_nodes
     return other_nodes[coordinator_node][0],other_nodes[coordinator_node][1]
 
+#Auxiliar. Preenche a lista de nodos para saber a topologia do sistema
 def fill(config_file,proc_id):
     global other_nodes
     with open(config_file,'r') as f:
@@ -370,6 +397,7 @@ def fill(config_file,proc_id):
             line = f.readline()
         f.close()
 
+#Auxiliar. Le o arquivo
 def reader(config_file, config_line):
     try:
         reading = ""
