@@ -17,11 +17,9 @@ coordinator_node = -1
 coordinator_ip = -1
 coordinator_port = -1
 
-# Magicamente pega o IP do PC atual
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("8.8.8.8", 80))
-real_ip = s.getsockname()[0]
-s.close()
+in_election = False
+consense_to_send = []
+consense_to_recv = -1
 
 # MENSAGENS DE COMUNICACAO
 REQUEST = 'REQUEST'
@@ -31,6 +29,8 @@ ON_QUEUE = 'ON_QUEUE'
 DONE = 'DONE'
 WAIT = 'WAIT'
 LEADER_DEAD = 'LEADER_DEAD'
+CONSENSE = 'CONSENSE'
+IM_LEADER = 'IM_LEADER'
 
 total_nodes = 5
 other_nodes = {}
@@ -92,9 +92,86 @@ def send_message(message,id,ip,port):
         # Inicia a eleicao, pegando os node_ids, maiores que os seus. Manda um leader message
         # 
 
+        warnNodes(LEADER_DEAD)
+        setConsensus_Send()
+        consensusNodes()
         TCP_sock.close()
 
+# Aqui eu tenho que mandar mensagem
+def consensusNodes():
+    global consense_to_send
+    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    data = proc_id + ':' + CONSENSE
 
+    for node in consense_to_send:
+        destination = (node[0],node[1])
+        signal = bytes(data,'utf-8')
+        TCP_sock.connect(destination)
+        TCP_sock.send(signal)
+    consense_to_send = []
+    TCP_sock.close()
+        
+    
+def setConsensus_Send():
+    for node in other_nodes:
+        print(node)
+        if int(node) > int(proc_id):
+            print('shits good')
+            consense_to_send.append((other_nodes[node][0],other_nodes[node][1]))
+
+def setConsensus_Recv(con_node):
+    global consense_to_recv
+    if int(proc_id) > int(con_node):
+        consense_to_recv += 1
+    for node in other_nodes:
+        if int(node) < int(proc_id) and int(node) > int(con_node):
+            consense_to_recv += 1
+
+def announceLeadership():
+    global coordinator, in_election
+    TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    data = id + ':' + IM_LEADER
+
+    for node in other_nodes:
+        destination = (node[0],node[1])
+        signal = bytes(data,'utf-8')
+        TCP_sock.connect(destination)
+        TCP_sock.send(signal)
+    TCP_sock.close()
+    coordinator = True
+    in_election = False
+
+def setLeader(leader_id):
+    global coordinator_ip,coordinator_node,coordinator_port, in_election
+    for node in other_nodes:
+        if node == leader_id:
+            coordinator_node = leader_id
+            coordinator_ip = node[0]
+            coordinator_port = node[1]
+            in_election = False
+
+
+
+
+# TO AVISANDO TODOS OS NODINHOS QUE O COORDENADOR MORREU
+# ZERA OS DADOS DELE POIS UMA ELEICAO VAI COMECAR
+def warnNodes(message):
+    global coordinator_node,coordinator_ip,coordinator_port, in_election
+    try:
+        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        data = id + ':' + message
+        for node in other_nodes:
+            destination = (node[0],node[1])
+            signal = bytes(data,'utf-8')
+            TCP_sock.connect(destination)
+            TCP_sock.send(signal)
+        TCP_sock.close()
+
+        other_nodes.pop(coordinator_node)
+        coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
+        in_election = True
+    except:
+        print('Ocorreu algum erro durante a eleicao!!')
 
 def requestSection():
 
@@ -102,15 +179,18 @@ def requestSection():
         #clear()
         print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
         request = input()
-        if request == 'WRITE':
-            #clear()
-            print('REQUISITANDO ACESSO AO COORDENADOR...')
-            #sleep(2)
-            send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
+        if not in_election:
+            if request == 'WRITE':
+                #clear()
+                print('REQUISITANDO ACESSO AO COORDENADOR...')
+                #sleep(2)
+                send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
+        else:
+            print('Eleicao em andamento. Nao e possivel requisitar secao!!')
 
 
 def listenToNodes():
-    global function_with, unlocked
+    global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
 
     try:
         tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -172,6 +252,24 @@ def listenToNodes():
                     print('Youve been placed in the priority queue. Wait!')
                 if data == 'WAIT':
                     print('Wait the fuck, cachorra apressada. Tu ja ta na fila!!!')
+                if data == 'LEADER_DEAD':
+                    print('Lider morto. Eleicao sera iniciada e conduzida por ' + node_id)
+                    other_nodes.pop(coordinator_node)
+                    coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
+                    in_election = True
+                    setConsensus_Send()
+                    setConsensus_Recv(node_id)
+                if data == 'CONSENSE':
+                    consense_to_recv -= 1
+                    if consense_to_recv == 0:
+                        if len(consense_to_send) == 0:
+                            announceLeadership()
+                        else:
+                            consensusNodes()
+                if data == 'IM_LEADER':
+                    setLeader(node_id)
+
+
 
             except Exception as e:
                 print('DEU PAU NO CONNECTION CLOSE')
@@ -406,7 +504,7 @@ def reader(config_file, config_line):
 
         ip = data[1]
         port = data[2]
-        if ip != real_ip:
+        if ip != verifyIp():
             print('Erro. Verificação de IP inválida!')
             sys.exit()
         
@@ -414,6 +512,14 @@ def reader(config_file, config_line):
     except:
         print('Erro durante leitura do arquivo! Tente Novamente')
         sys.exit()
+
+def verifyIp():
+    # Magicamente pega o IP do PC atual
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    real_ip = s.getsockname()[0]
+    s.close()
+    return real_ip
 
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
