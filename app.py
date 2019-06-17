@@ -1,6 +1,7 @@
 import os, sys, socket
 import _thread as thread
 from time import sleep
+import time
 
 DEFAULT_PORT = 7000
 
@@ -21,6 +22,10 @@ in_election = False
 consense_to_send = []
 consense_to_recv = -1
 
+count = 6
+using = []
+blacklisted_nodes = []
+
 # MENSAGENS DE COMUNICACAO
 REQUEST = 'REQUEST'
 GRANTED = 'GRANTED'
@@ -31,6 +36,7 @@ WAIT = 'WAIT'
 LEADER_DEAD = 'LEADER_DEAD'
 CONSENSE = 'CONSENSE'
 IM_LEADER = 'IM_LEADER'
+BLACKLISTED = 'BLACKLISTED'
 
 total_nodes = 5
 other_nodes = {}
@@ -167,8 +173,20 @@ def warnNodes(message):
     except:
         print('Ocorreu algum erro durante a eleicao!!')
 
-def requestSection():
+def blacklistCount(node_id):
+    global unlocked
+    start_time = time.time()
+    current_time = time.time()
+    while start_time - current_time < 5:
+        sleep(0.1)
+        current_time = time.time()
+    if node_id in using:
+        unlocked = True
+        using.pop(node_id)
+        blacklisted_nodes.append(node_id)
+        log(node_id,'BLACKLISTED')
 
+def requestSection():
     while not coordinator:
         #clear()
         print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
@@ -181,7 +199,6 @@ def requestSection():
                 send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
         else:
             print('Eleicao em andamento. Nao e possivel requisitar secao!!')
-
 
 def listenToNodes():
     global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
@@ -215,10 +232,14 @@ def listenToNodes():
                 # se eu for o coordenador, tenho acesso a mais funcoes
                 if coordinator:
                     if data == 'REQUEST':
-                        if unlocked:
+                        if node_id in blacklisted_nodes:
+                            send_message(BLACKLISTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                            log(node_id,'TRIED')
+                        elif unlocked:
                             function_with = node_id
                             unlocked = False
                             send_message(GRANTED,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                            using.append(node_id)
                             log(node_id,'GRANTED')
                         else:
                             in_queue = False
@@ -234,6 +255,7 @@ def listenToNodes():
                                 log(node_id,'WAIT')
                     if data == 'DONE':
                         function_with = -1
+                        using.pop(node_id)
                         unlocked = True
                         print('FOOOOI')
                         log(node_id,'USED')
@@ -264,6 +286,8 @@ def listenToNodes():
                             consensusNodes()
                 if data == 'IM_LEADER':
                     setLeader(node_id)
+                if data == 'BLACKLISTED':
+                    print('Voce foi banido do servico pelo lider atual')
             except Exception as e:
                 print('DEU PAU NO CONNECTION CLOSE')
                 sleep(1)
@@ -273,7 +297,6 @@ def listenToNodes():
         print('DEU PAU NO SERVER CLOSE')
         sleep(1)
         tcp_server.close()
-
 
 
 def startCoordinator():
@@ -316,6 +339,12 @@ def log(node_id,info):
     if info == 'ENDED':
         print('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
         f.write('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
+    if info == 'BLACKLISTED':
+        print('Nodo ' + node_id + ' nao se comportou direito e foi banido do sistema!')
+        f.write('Nodo ' + node_id + ' nao se comportou direito e foi banido do sistema!')
+    if info == 'TRIED':
+        print('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
+        f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
     f.close()
 
 def getCoordinatorInfo():
