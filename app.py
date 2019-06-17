@@ -48,16 +48,10 @@ def main():
     
     while True:
         sleep(0.1)
-    '''sys_quit = ""
-    while(sys_quit != 'quit'):
-        sys_quit = input()
-
-    print('Programa encerrado!')
-    sys.exit()'''
 
 def launch():
-        global proc_id,ip,port, other_nodes
-    #try:
+    global proc_id,ip,port, other_nodes
+    try:
         proc_id, ip, port = reader(sys.argv[1],sys.argv[2])
         port = int(port)
         #print(proc_id)
@@ -77,9 +71,9 @@ def launch():
         print(other_nodes)
         print(coordinator)
 
-    #except:
-        #print('Erro de execução do algoritmo! Tente Novamente')
-        #sys.exit()
+    except:
+        print('Erro de execução do algoritmo! Tente Novamente')
+        sys.exit()
 
 def send_message(message,id,ip,port):
     try:
@@ -205,16 +199,16 @@ def requestSection():
             print('Eleicao em andamento. Nao e possivel requisitar secao!!')
 
 def listenToNodes():
-        global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
+    global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
 
-    #try:
+    try:
         tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         origin = (ip, port)
         tcp_server.bind(origin)
         tcp_server.listen(10)
 
         while True:
-            #try:
+            try:
 
                 # ver aqui se tem alguem na fila
                 if coordinator:
