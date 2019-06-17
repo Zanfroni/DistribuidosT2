@@ -38,7 +38,7 @@ CONSENSE = 'CONSENSE'
 IM_LEADER = 'IM_LEADER'
 BLACKLISTED = 'BLACKLISTED'
 
-total_nodes = 5
+total_nodes = 4
 other_nodes = {}
 
 def main():
