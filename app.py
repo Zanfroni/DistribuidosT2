@@ -353,7 +353,7 @@ def log(node_id,info):
         f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!\n')
     if info == 'BANNED':
         print('Este computador ('+ node_id + ') foi banido de usar o servico')
-        f.write('Este computador foi banido de usar o servico\n')
+        f.write('Este computador ('+ node_id + ') foi banido de usar o servico\n')
     f.close()
 
 def getCoordinatorInfo():
