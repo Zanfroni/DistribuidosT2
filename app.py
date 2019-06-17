@@ -266,7 +266,7 @@ def listenToNodes():
                             print('FOOOOI')
                             log(node_id,'USED')
                         else:
-                            log(proc_id,'BANNED')
+                            log(node_id,'BANNED')
                 if data == 'GRANTED':
                     lock()
                     # WRITING FUNCTION
@@ -354,7 +354,7 @@ def log(node_id,info):
         print('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
         f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
     if info == 'BANNED':
-        print('Este computador foi banido de usar o servico')
+        print('Este computador ('+ node_id + ') foi banido de usar o servico')
         f.write('Este computador foi banido de usar o servico')
     f.close()
 
