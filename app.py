@@ -87,7 +87,9 @@ def send_message(message,id,ip,port):
         data = id + ':' + message
         destination = (ip,port)
         signal = bytes(data,'utf-8')
+        print('wtf')
         TCP_sock.connect(destination)
+        print('comassim')
         TCP_sock.send(signal)
         TCP_sock.close()
     except:
@@ -159,6 +161,8 @@ def warnNodes(message):
     global coordinator_node,coordinator_ip,coordinator_port, in_election
     try:
         TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        other_nodes.pop(coordinator_node)
+        coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
         data = id + ':' + message
         for node in other_nodes:
             destination = (node[0],node[1])
@@ -167,8 +171,6 @@ def warnNodes(message):
             TCP_sock.send(signal)
         TCP_sock.close()
 
-        other_nodes.pop(coordinator_node)
-        coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
         in_election = True
     except:
         print('Ocorreu algum erro durante a eleicao!!')
