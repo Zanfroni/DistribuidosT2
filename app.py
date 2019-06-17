@@ -298,6 +298,7 @@ def listenToNodes():
                             consensusNodes()
                 if data == 'IM_LEADER':
                     setLeader(node_id)
+                    in_election = False
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
             #except Exception as e:
