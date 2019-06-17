@@ -322,7 +322,7 @@ def startCoordinator():
 def writingFunction(node_id):
     global count
     f = open('writing_file.txt','w+')
-    f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + count + ' vez')
+    f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + str(count) + ' vez')
     count += 1
     f.close()
     
