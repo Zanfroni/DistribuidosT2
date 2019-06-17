@@ -201,16 +201,16 @@ def requestSection():
             print('Eleicao em andamento. Nao e possivel requisitar secao!!')
 
 def listenToNodes():
-    global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
+        global function_with, unlocked, coordinator_ip,coordinator_node,coordinator_port,in_election,consense_to_recv
 
-    try:
+    #try:
         tcp_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         origin = (ip, port)
         tcp_server.bind(origin)
         tcp_server.listen(10)
 
         while True:
-            try:
+            #try:
 
                 # ver aqui se tem alguem na fila
                 if coordinator:
@@ -255,14 +255,14 @@ def listenToNodes():
                                 log(node_id,'WAIT')
                     if data == 'DONE':
                         function_with = -1
-                        using.pop(node_id)
+                        using.remove(node_id)
                         unlocked = True
                         print('FOOOOI')
                         log(node_id,'USED')
                 if data == 'GRANTED':
                     lock()
                     # WRITING FUNCTION
-                    sleep(5)
+                    sleep(3)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
@@ -288,15 +288,15 @@ def listenToNodes():
                     setLeader(node_id)
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
-            except Exception as e:
-                print('DEU PAU NO CONNECTION CLOSE')
-                sleep(1)
-                print(e)
-                connection.close()
-    except:
-        print('DEU PAU NO SERVER CLOSE')
-        sleep(1)
-        tcp_server.close()
+            #except Exception as e:
+                #print('DEU PAU NO CONNECTION CLOSE')
+                #sleep(1)
+                #print(e)
+                #connection.close()
+    #except:
+        #print('DEU PAU NO SERVER CLOSE')
+        #sleep(1)
+        #tcp_server.close()
 
 
 def startCoordinator():
