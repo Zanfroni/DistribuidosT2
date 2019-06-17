@@ -155,8 +155,8 @@ def setLeader(leader_id):
     for node in other_nodes:
         if node == leader_id:
             coordinator_node = leader_id
-            coordinator_ip = node[0]
-            coordinator_port = node[1]
+            coordinator_ip = other_nodes[node][0]
+            coordinator_port = other_nodes[node][1]
             in_election = False
 
 def warnNodes(message):
