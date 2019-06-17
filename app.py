@@ -98,7 +98,6 @@ def send_message(message,id,ip,port):
         warnNodes(LEADER_DEAD)
         setConsensus_Send()
         consensusNodes()
-        log(coordinator_node,'ENDED')
         TCP_sock.close()
 
 # Aqui eu tenho que mandar mensagem
@@ -298,6 +297,7 @@ def listenToNodes():
                             consensusNodes()
                 if data == 'IM_LEADER':
                     setLeader(node_id)
+                    log(coordinator_node,'ENDED')
                     in_election = False
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
