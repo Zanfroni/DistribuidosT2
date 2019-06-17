@@ -114,7 +114,6 @@ def consensusNodes():
         TCP_sock.close()
     consense_to_send = []
         
-    
 def setConsensus_Send():
     for node in other_nodes:
         print(node)
@@ -160,17 +159,20 @@ def setLeader(leader_id):
 def warnNodes(message):
     global coordinator_node,coordinator_ip,coordinator_port, in_election
     try:
-        TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         other_nodes.pop(coordinator_node)
         coordinator_node,coordinator_ip,coordinator_port = '-1','-1',-1
-        data = id + ':' + message
+        print('warna corno')
         for node in other_nodes:
+            print(other_nodes)
+            print('warna mais')
+            TCP_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)            
+            data = id + ':' + message
             destination = (node[0],node[1])
             signal = bytes(data,'utf-8')
             TCP_sock.connect(destination)
             TCP_sock.send(signal)
-        TCP_sock.close()
-
+            print('estou warnando os outros')
+            TCP_sock.close()
         in_election = True
     except:
         print('Ocorreu algum erro durante a eleicao!!')
