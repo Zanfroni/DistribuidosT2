@@ -219,7 +219,7 @@ def listenToNodes():
                         function_with = next_node[0]
                         unlocked = False
                         send_message(GRANTED,proc_id,next_node[1],DEFAULT_PORT+int(next_node[0]))
-                        log(next_node,'GRANTED')
+                        log(next_node[0],'GRANTED')
 
 
                 connection, client = tcp_server.accept()
