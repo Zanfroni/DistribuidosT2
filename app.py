@@ -93,6 +93,7 @@ def send_message(message,id,ip,port):
         TCP_sock.send(signal)
         TCP_sock.close()
     except:
+        TCP_sock.close()
         print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
         log(id,'STARTED')
         warnNodes(LEADER_DEAD)
