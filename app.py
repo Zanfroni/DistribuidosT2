@@ -86,9 +86,11 @@ def send_message(message,id,ip,port):
         TCP_sock.close()
     except:
         print('COORDENADOR MORTO! INICIANDO UMA NOVA ELEICAO')
+        log(id,'STARTED')
         warnNodes(LEADER_DEAD)
         setConsensus_Send()
         consensusNodes()
+        log(coordinator_node,'ENDED')
         TCP_sock.close()
 
 # Aqui eu tenho que mandar mensagem
@@ -221,10 +223,12 @@ def listenToNodes():
                             for i in priority_queue:
                                 if i[0] == node_id:
                                     send_message(WAIT,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                                    log(node_id,'IDIOT')
                                     in_queue = True
                             if not in_queue:
                                 send_message(DENIED,proc_id,client[0],DEFAULT_PORT+int(node_id))
                                 priority_queue.append((node_id,client[0]))
+                                log(node_id,'WAIT')
                     if data == 'DONE':
                         function_with = -1
                         unlocked = True
@@ -293,10 +297,26 @@ def unlock():
     os.rename('LOCKED_writing_file.txt','writing_file.txt')
 
 def log(node_id,info):
+    f = open('writing_file.txt','w+')
     if info == 'GRANTED':
         print('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
+        f.write('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
     if info == 'USED':
         print('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+    if info == 'WAIT':
+        print('Nodo ' + node_id + ' tentou acessar secao critica e foi posto na fila de espera')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+    if info == 'IDIOT':
+        print('Nodo ' + node_id + ' esta bastante impaciente!')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+    if info == 'STARTED':
+        print('Eleicao teve inicio, conduzida por ' + node_id)
+        f.write('Eleicao teve inicio, conduzida por ' + node_id)
+    if info == 'ENDED':
+        print('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
+        f.write('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
+    f.close()
 
 def getCoordinatorInfo():
     global proc_id,other_nodes
