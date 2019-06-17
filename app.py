@@ -301,15 +301,12 @@ def listenToNodes():
                     in_election = False
                 if data == 'BLACKLISTED':
                     print('Voce foi banido do servico pelo lider atual')
-            #except Exception as e:
-                #print('DEU PAU NO CONNECTION CLOSE')
-                #sleep(1)
-                #print(e)
-                #connection.close()
-    #except:
-        #print('DEU PAU NO SERVER CLOSE')
-        #sleep(1)
-        #tcp_server.close()
+            except Exception as e:
+                print('DEU PAU NO CONNECTION CLOSE')
+                connection.close()
+    except:
+        print('DEU PAU NO SERVER CLOSE')
+        tcp_server.close()
 
 
 def startCoordinator():
@@ -325,7 +322,7 @@ def startCoordinator():
 def writingFunction(node_id):
     global count
     f = open('writing_file.txt','a')
-    f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + str(count) + ' vez')
+    f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + str(count) + ' vez\n')
     count += 1
     f.close()
     
@@ -338,31 +335,31 @@ def log(node_id,info):
     f = open('writing_file.txt','a')
     if info == 'GRANTED':
         print('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
-        f.write('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
+        f.write('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)\n')
     if info == 'USED':
-        print('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        print('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
         f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
     if info == 'WAIT':
         print('Nodo ' + node_id + ' tentou acessar secao critica e foi posto na fila de espera')
-        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
     if info == 'IDIOT':
         print('Nodo ' + node_id + ' esta bastante impaciente!')
-        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
     if info == 'STARTED':
         print('Eleicao teve inicio, conduzida por ' + node_id)
-        f.write('Eleicao teve inicio, conduzida por ' + node_id)
+        f.write('Eleicao teve inicio, conduzida por ' + node_id + '\n')
     if info == 'ENDED':
         print('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
-        f.write('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id)
+        f.write('Eleicao encerrada. Consenso atingido. Novo lider sera ' + node_id + '\n')
     if info == 'BLACKLISTED':
         print('Nodo ' + node_id + ' nao se comportou direito e foi banido do sistema!')
-        f.write('Nodo ' + node_id + ' nao se comportou direito e foi banido do sistema!')
+        f.write('Nodo ' + node_id + ' nao se comportou direito e foi banido do sistema!\n')
     if info == 'TRIED':
         print('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
-        f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!')
+        f.write('Nodo banido ' + node_id + ' tentou acessar o servico e teve acesso negado!\n')
     if info == 'BANNED':
         print('Este computador ('+ node_id + ') foi banido de usar o servico')
-        f.write('Este computador foi banido de usar o servico')
+        f.write('Este computador foi banido de usar o servico\n')
     f.close()
 
 def getCoordinatorInfo():
