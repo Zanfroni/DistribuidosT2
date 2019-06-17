@@ -258,20 +258,21 @@ def listenToNodes():
                                 send_message(DENIED,proc_id,client[0],DEFAULT_PORT+int(node_id))
                                 priority_queue.append((node_id,client[0]))
                                 log(node_id,'WAIT')
-                    if data == 'DONE' and node_id not in blacklisted_nodes:
-                        function_with = -1
-                        using.remove(node_id)
-                        unlocked = True
-                        print('FOOOOI')
-                        log(node_id,'USED')
+                    if data == 'DONE':
+                        if node_id not in blacklisted_nodes:
+                            function_with = -1
+                            using.remove(node_id)
+                            unlocked = True
+                            print('FOOOOI')
+                            log(node_id,'USED')
+                        else:
+                            log(proc_id,'BANNED')
                 if data == 'GRANTED':
                     lock()
                     # WRITING FUNCTION
-                    sleep(3)
+                    sleep(8)
                     unlock()
-                    if proc_id in blacklisted_nodes:
-                        print('Voce foi banido do servico pelo coordenador!')
-                    else: send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
+                    send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
                     print('Section is currently being used by ' + node_id)
                     print('Youve been placed in the priority queue. Wait!')
