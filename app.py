@@ -191,9 +191,7 @@ def requestSection():
         request = input()
         if not in_election:
             if request == 'WRITE':
-                #clear()
                 print('REQUISITANDO ACESSO AO COORDENADOR...')
-                #sleep(2)
                 send_message(REQUEST,proc_id,coordinator_ip,coordinator_port)
         else:
             print('Eleicao em andamento. Nao e possivel requisitar secao!!')
@@ -267,7 +265,7 @@ def listenToNodes():
                 if data == 'GRANTED':
                     lock()
                     writingFunction(proc_id)
-                    sleep(8)
+                    sleep(4)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
                 if data == 'DENIED':
@@ -331,14 +329,14 @@ def log(node_id,info):
         print('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)')
         f.write('Nodo ' + node_id + ' comecou a usar a secao critica (escrevendo)\n')
     if info == 'USED':
-        print('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
-        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        print('Nodo ' + node_id + ' saiu da secao critica (finalizou)')
+        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
     if info == 'WAIT':
         print('Nodo ' + node_id + ' tentou acessar secao critica e foi posto na fila de espera')
-        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
+        f.write('Nodo ' + node_id + ' tentou acessar secao critica e foi posto na fila de espera\n')
     if info == 'IDIOT':
         print('Nodo ' + node_id + ' esta bastante impaciente!')
-        f.write('Nodo ' + node_id + ' saiu da secao critica (finalizou)\n')
+        f.write('Nodo ' + node_id + ' esta bastante impaciente!\n')
     if info == 'STARTED':
         print('Eleicao teve inicio, conduzida por ' + node_id)
         f.write('Eleicao teve inicio, conduzida por ' + node_id + '\n')
