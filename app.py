@@ -209,7 +209,6 @@ def blacklistCount(node_id):
 
 def requestSection():
     while not coordinator:
-        #clear()
         print('Digite WRITE se voce quer escrever (acesso a regiao critica)')
         request = input()
         if not in_election:
