@@ -22,7 +22,7 @@ in_election = False
 consense_to_send = []
 consense_to_recv = -1
 
-count = 6
+count = 1
 using = []
 blacklisted_nodes = []
 
@@ -269,7 +269,7 @@ def listenToNodes():
                             log(node_id,'BANNED')
                 if data == 'GRANTED':
                     lock()
-                    # WRITING FUNCTION
+                    writingFunction(proc_id)
                     sleep(8)
                     unlock()
                     send_message(DONE,proc_id,client[0],DEFAULT_PORT+int(node_id))
@@ -317,10 +317,12 @@ def startCoordinator():
         coordinator_node = str(total_nodes)
         coordinator_ip,coordinator_port = getCoordinatorInfo()
     
-def writingFunction():
-    print('ESCREVI NESSA BOSTA')
-    print('SO IMPLEMENTA AQUI UMA ESCRITA BOSTA')
-    print('PRA FICAR DE ACORDO COM O ENUNCIADO')
+def writingFunction(node_id):
+    global count
+    f = open('writing_file.txt','w+')
+    f.write('Eu, nodo ' + node_id + ' acessei a secao critica, escrevendo pela ' + count + ' vez')
+    count += 1
+    f.close()
     
 def lock():
     os.rename('writing_file.txt','LOCKED_writing_file.txt')
