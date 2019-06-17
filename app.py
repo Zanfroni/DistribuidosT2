@@ -114,6 +114,9 @@ def setConsensus_Send():
         if int(node) > int(proc_id):
             print('shits good')
             consense_to_send.append((other_nodes[node][0],other_nodes[node][1]))
+    # Se ele nao tem ninguem pra enviar, ele sera o leader
+    if len(consense_to_send) == 0:
+        announceLeadership()
 
 def setConsensus_Recv(con_node):
     global consense_to_recv
@@ -261,9 +264,6 @@ def listenToNodes():
                             consensusNodes()
                 if data == 'IM_LEADER':
                     setLeader(node_id)
-
-
-
             except Exception as e:
                 print('DEU PAU NO CONNECTION CLOSE')
                 sleep(1)
